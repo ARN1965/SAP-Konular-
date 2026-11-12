@@ -5,23 +5,23 @@
 define view entity ZI_SAS_EKBE_OZET
   as select from ZI_SAS_EKBE_TUTAR
 {
-  key ebeln,
-  key ebelp,
-      waers,
+  key SasNo,
+  key SasKalem,
+      BelgePB,
 
-      sum( case bewtp when 'E' then 1 else 0 end ) as mal_girisi_adet,
-      sum( case bewtp when 'Q' then 1 else 0 end ) as fatura_adet,
+      sum( case HistTipi when 'E' then 1 else 0 end ) as MalGirisiAdet,
+      sum( case HistTipi when 'Q' then 1 else 0 end ) as FaturaAdet,
 
-      @Semantics.amount.currencyCode: 'waers'
-      sum( case bewtp when 'Q' then tutar_belge_pb else cast( 0 as abap.curr(13,2) ) end ) as fatura_tutar_belge_pb,
+      @Semantics.amount.currencyCode: 'BelgePB'
+      sum( case HistTipi when 'Q' then TutarBelgePB else cast( 0 as abap.curr(13,2) ) end ) as FaturaTutarBelgePB,
 
-      @Semantics.amount.currencyCode: 'try_pb'
-      sum( case bewtp when 'Q' then tutar_try else cast( 0 as abap.curr(13,2) ) end ) as fatura_tutar_try,
+      @Semantics.amount.currencyCode: 'TryPB'
+      sum( case HistTipi when 'Q' then TutarTRY else cast( 0 as abap.curr(13,2) ) end ) as FaturaTutarTRY,
 
-      try_pb
+      TryPB
 }
 group by
-  ebeln,
-  ebelp,
-  waers,
-  try_pb
+  SasNo,
+  SasKalem,
+  BelgePB,
+  TryPB
