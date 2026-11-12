@@ -19,6 +19,7 @@ define view entity ZC_SAS_RAPOR
       ekpo.banfn                  as SatNo,
       ekpo.bnfpo                  as SatKalem,
       ekpo.matnr                  as Malzeme,
+      ekpo.werks                  as Uretimyeri,
       // Tanım yoksa EKPO-TXZ01 kullanılır
       coalesce( makt.maktx, ekpo.txz01 ) as MalzemeTanimi,
 

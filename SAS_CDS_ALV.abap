@@ -1,15 +1,18 @@
 REPORT zsas_rapor_alv.
 
 DATA: gv_ebeln TYPE ekko-ebeln,
-      gv_aedat TYPE ekko-aedat.
+      gv_aedat TYPE ekko-aedat,
+      gv_werks TYPE ekpo-werks.
 
 SELECT-OPTIONS: so_ebeln FOR gv_ebeln,
-                so_aedat FOR gv_aedat.
+                so_aedat FOR gv_aedat,
+                so_werks FOR gv_werks.
 
 START-OF-SELECTION.
   SELECT * FROM zc_sas_rapor
     WHERE sasno IN @so_ebeln
       AND sasyaratmatarihi IN @so_aedat
+      AND uretimyeri IN @so_werks
     ORDER BY sasno, saskalem
     INTO TABLE @DATA(gt_rapor).
 

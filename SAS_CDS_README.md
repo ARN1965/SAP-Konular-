@@ -27,4 +27,5 @@ Aktivasyon sırası: KOKRS → TUTAR → OZET → RAPOR → ALV. `SAS_CDS_ALV.ab
 - **Para birimi:** `EKKO-WAERS`; SAT tutarı `EBAN-RLWRT`, para birimi `EBAN-WAERS`.
 - **Açık/kapalı:** filtre yok; `TeslimTamamlandi` (ELIKZ) ve `SilmeGostergesi` (LOEKZ) ile ayrışır.
 - **Performans:** EKBE toplamları ve TRY dönüşümü ayrı aggregate view'da (`ZI_SAS_EKBE_OZET`) kalem bazında önceden hesaplanır; ana view'de 5 join vardır (KOKRS eşlemesi anahtar erişimlidir). Rapora SAS no/tarih filtresi verin.
+- **Seçim ekranı (ALV):** SAS no, SAS yaratma tarihi ve çoklu üretim yeri (`SO_WERKS` → `EKPO-WERKS`, `ZC_SAS_RAPOR.Uretimyeri`).
 - Yetki kontrolü yok (`#NOT_REQUIRED`); kod bir sistemde derlenmedi.
