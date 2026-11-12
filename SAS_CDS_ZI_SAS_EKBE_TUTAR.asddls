@@ -7,6 +7,10 @@ define view entity ZI_SAS_EKBE_TUTAR
     inner join      ekpo               on  ekpo.ebeln = ekbe.ebeln
                                        and ekpo.ebelp = ekbe.ebelp
     left outer join ZI_SAS_KOKRS as ko on  ko.Bukrs = ekpo.bukrs
+    // Fatura belge tarihi (kur tarihi) için fatura başlığı; yalnızca BEWTP = Q
+    left outer join rbkp               on  rbkp.belnr = ekbe.belnr
+                                       and rbkp.gjahr = ekbe.gjahr
+                                       and ekbe.bewtp = 'Q'
 {
   key ekbe.ebeln,
   key ekbe.ebelp,
@@ -29,7 +33,7 @@ define view entity ZI_SAS_EKBE_TUTAR
         amount             => case ekbe.shkzg when 'H' then cast( 0 as abap.curr(13,2) ) - ekbe.wrbtr else ekbe.wrbtr end,
         source_currency    => ekbe.waers,
         target_currency    => cast( 'TRY' as abap.cuky ),
-        exchange_rate_date => ekbe.budat,
+        exchange_rate_date => coalesce( rbkp.bldat, ekbe.budat ),
         exchange_rate_type => 'M',
         error_handling     => 'SET_TO_NULL'
       ) as tutar_try,
@@ -40,7 +44,7 @@ define view entity ZI_SAS_EKBE_TUTAR
         amount             => case ekbe.shkzg when 'H' then cast( 0 as abap.curr(13,2) ) - ekbe.wrbtr else ekbe.wrbtr end,
         source_currency    => ekbe.waers,
         target_currency    => ko.KokrsWaers,
-        exchange_rate_date => ekbe.budat,
+        exchange_rate_date => coalesce( rbkp.bldat, ekbe.budat ),
         exchange_rate_type => 'M',
         error_handling     => 'SET_TO_NULL'
       ) as tutar_kokrs,

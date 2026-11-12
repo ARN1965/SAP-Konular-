@@ -19,9 +19,11 @@ Aktivasyon sırası: KOKRS → TUTAR → OZET → RAPOR. View adları (ZI_/ZC_) 
 - **SAS yaratma tarihi:** `EKKO-AEDAT`. **Gün farkı** = SAS yaratma − SAT onay (negatif olabilir).
 - **SAT bağlantısı:** `EKPO-BANFN/BNFPO` (SAT'sız SAS de listelenir).
 - **Mal girişi:** EKBE `BEWTP='E'` varsa `X`. **Fatura girişi:** `BEWTP='Q'` varsa `X`; iptaller (`SHKZG='H'`) negatif.
-- **Fatura tutarı:** `EKBE-WRBTR`; TRY için kur tipi `M`, kur tarihi `BUDAT`, kur yoksa NULL.
+- **Fatura tutarı:** `EKBE-WRBTR`; TRY için kur tipi `M`, kur tarihi fatura belge tarihi (aşağıda), kur yoksa NULL.
 - **Kontrol kodu:** CO modülündeki Controlling Area (`KOKRS`). Şirket kodundan bulunur: `EKPO-BUKRS` → `TKA02` (GSBER boş kayıt) → `TKA01` (`KOKRS`, `WAERS`). Kontrol kodu para birimi `TKA01-WAERS` (USD) → `KontrolKoduParaBirimi`. Eşleme `ZI_SAS_KOKRS` view'inde; şirket kodu başına GSBER boş tek kayıt beklenir (yoksa KOKRS boş kalır).
-- **Fatura tutarı (kontrol kodu PB):** `EKBE-WRBTR` belge para biriminden `TKA01-WAERS`'a `currency_conversion` ile çevrilir (`FaturaTutarKontrolKoduPB`; kur tipi `M`, kur tarihi `BUDAT`, kur yoksa NULL). TRY alanı (`FaturaTutarTRY`) korunur.
+- **Kur tarihi ve tipi:** fatura belge tarihi `RBKP-BLDAT` (EKBE `BELNR/GJAHR` ile bağlanır; mal girişi satırlarında RBKP yoktur, `EKBE-BUDAT` kullanılır), kur tipi `M`; kur yoksa NULL.
+- **Muhasebe belgesi (ACDOCA) değerlendirmesi:** Tercih edilen yol ACDOCA'dan hazır tutarlar (HSL/KSL) idi, ancak kullanılmadı: bir fatura kaleminin ACDOCA'da birden çok satırı vardır (gider, GR/IR, vergi, satıcı) ve hangi satırın "fatura tutarı" olduğunu hesap/kayıt mantığı olmadan güvenle seçmek mümkün değildir (çift sayım riski); ayrıca ACDOCA'daki ikinci/üçüncü para birimi controlling area para biriminin (USD) aynısı olmayabilir. Bu nedenle 2. seçenek uygulanmıştır: `RBKP-BLDAT` + `M` kuruyla `currency_conversion`. Mutabakat için ACDOCA (`AWTYP='RMRP'`, `AWREF`=BELNR, `AWORG`=GJAHR) elle karşılaştırılabilir.
+- **Fatura tutarı (kontrol kodu PB):** `EKBE-WRBTR` belge para biriminden `TKA01-WAERS`'a `currency_conversion` ile çevrilir (`FaturaTutarKontrolKoduPB`). TRY alanı (`FaturaTutarTRY`) korunur; ikisi de aggregate view'da hesaplanır.
 - **Para birimi:** `EKKO-WAERS`; SAT tutarı `EBAN-RLWRT`, para birimi `EBAN-WAERS`.
 - **Açık/kapalı:** filtre yok; `TeslimTamamlandi` (ELIKZ) ve `SilmeGostergesi` (LOEKZ) ile ayrışır.
 - **Performans:** EKBE toplamları ve TRY dönüşümü ayrı aggregate view'da (`ZI_SAS_EKBE_OZET`) kalem bazında önceden hesaplanır; ana view'de 5 join vardır (KOKRS eşlemesi anahtar erişimlidir). Rapora SAS no/tarih filtresi verin.
