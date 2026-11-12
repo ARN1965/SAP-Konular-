@@ -46,12 +46,12 @@ define view entity ZC_SAS_RAPOR
            else dats_days_between( eban.frgdt, ekko.aedat ) end as GunFarki,
 
       // Göstergeler
-      case when ozet.mal_girisi_adet > 0 then 'X' else '' end as MalGirisiYapildi,
-      case when ozet.fatura_adet > 0     then 'X' else '' end as FaturaGirisiYapildi,
+      case when ozet.mal_girisi_net > 0 then 'X' else '' end as MalGirisiYapildi,
+      case when ozet.fatura_net > 0     then 'X' else '' end as FaturaGirisiYapildi,
 
       // Fatura tutarı: belge para birimi ve TRY
       @Semantics.amount.currencyCode: 'ParaBirimi'
-      ozet.fatura_tutar_belge_pb  as FaturaTutarBelgePB,
+      ozet.fatura_tutar_po_pb     as FaturaTutarBelgePB,
       @Semantics.amount.currencyCode: 'FaturaParaBirimiTRY'
       ozet.fatura_tutar_try       as FaturaTutarTRY,
       cast( 'TRY' as abap.cuky )  as FaturaParaBirimiTRY,

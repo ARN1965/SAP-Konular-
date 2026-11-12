@@ -11,17 +11,17 @@ Dosyalar `SAS_CDS_` önekiyle kökte durur; istenirse bir klasöre taşınabilir
 | `SAS_CDS_ZC_SAS_RAPOR.asddls` | Ana rapor view'i (EKPO, EKKO, EBAN, MAKT + özet) |
 | `SAS_CDS_ALV.abap` | Basit ALV raporu (ZSAS_RAPOR_ALV) |
 
-Aktivasyon sırası: KOKRS → TUTAR → OZET → RAPOR. View adları (ZI_/ZC_) dosya adlarından bağımsızdır.
+Aktivasyon sırası: KOKRS → TUTAR → OZET → RAPOR → ALV. `SAS_CDS_ALV.abap` (ZSAS_RAPOR_ALV) `ZC_SAS_RAPOR` aktif olmadan derlenmez. View adları (ZI_/ZC_) dosya adlarından bağımsızdır.
 
 ## Varsayımlar
 - **S/4HANA 2023 (S4CORE 108, SAP_BASIS 758):** `I_*API01` view'ları sistemde yok; bu yüzden **doğrudan tablolardan** (EKPO, EKKO, EBAN, EKBE, MAKT) okunur. ABAP CDS view entity, `currency_conversion`, `dats_days_between` kullanılır.
 - **SAT onay tarihi:** `EBAN-FRGDT`; yoksa gün farkı NULL.
 - **SAS yaratma tarihi:** `EKKO-AEDAT`. **Gün farkı** = SAS yaratma − SAT onay (negatif olabilir).
 - **SAT bağlantısı:** `EKPO-BANFN/BNFPO` (SAT'sız SAS de listelenir).
-- **Mal girişi:** EKBE `BEWTP='E'` varsa `X`. **Fatura girişi:** `BEWTP='Q'` varsa `X`; iptaller (`SHKZG='H'`) negatif.
-- **Fatura tutarı:** `EKBE-WRBTR`; TRY için kur tipi `M`, kur tarihi fatura belge tarihi (aşağıda), kur yoksa NULL.
+- **Mal girişi:** EKBE `BEWTP='E'` net adedi (S:+1, H:−1) > 0 ise `X`. **Fatura girişi:** `BEWTP='Q'` net adedi > 0 ise `X`; tamamen iptal edilenler işaretlenmez.
+- **Fatura tutarı:** `EKBE-WRBTR` (iptaller negatif); fatura para birimi SAS para biriminden farklı olabileceği için tutar önce `EKKO-WAERS`'a çevrilir (`FaturaTutarBelgePB`, para birimi `ParaBirimi`). Böylece özet view'da kalem başına tek satır oluşur (key: EBELN, EBELP). TRY ve kontrol kodu PB tutarları ayrıca çevrilir.
 - **Kontrol kodu:** CO modülündeki Controlling Area (`KOKRS`). Şirket kodundan bulunur: `EKPO-BUKRS` → `TKA02` (GSBER boş kayıt) → `TKA01` (`KOKRS`, `WAERS`). Kontrol kodu para birimi `TKA01-WAERS` (USD) → `KontrolKoduParaBirimi`. Eşleme `ZI_SAS_KOKRS` view'inde; şirket kodu başına GSBER boş tek kayıt beklenir (yoksa KOKRS boş kalır).
-- **Kur tarihi ve tipi:** fatura belge tarihi `RBKP-BLDAT` (EKBE `BELNR/GJAHR` ile bağlanır; mal girişi satırlarında RBKP yoktur, `EKBE-BUDAT` kullanılır), kur tipi `M`; kur yoksa NULL.
+- **Kur tarihi ve tipi:** fatura belge tarihi `RBKP-BLDAT` (EKBE `BELNR/GJAHR` ile left outer join; yalnızca `BEWTP='Q'` için kullanılır, mal girişi `E` satırlarında `EKBE-BUDAT`; RBKP bulunamazsa da `BUDAT`), kur tipi `M`. Kur bulunamazsa veya TKA02 eşlemesi yoksa (hedef para birimi NULL) `error_handling => 'SET_TO_NULL'` ile tutar NULL döner.
 - **Muhasebe belgesi (ACDOCA) değerlendirmesi:** Tercih edilen yol ACDOCA'dan hazır tutarlar (HSL/KSL) idi, ancak kullanılmadı: bir fatura kaleminin ACDOCA'da birden çok satırı vardır (gider, GR/IR, vergi, satıcı) ve hangi satırın "fatura tutarı" olduğunu hesap/kayıt mantığı olmadan güvenle seçmek mümkün değildir (çift sayım riski); ayrıca ACDOCA'daki ikinci/üçüncü para birimi controlling area para biriminin (USD) aynısı olmayabilir. Bu nedenle 2. seçenek uygulanmıştır: `RBKP-BLDAT` + `M` kuruyla `currency_conversion`. Mutabakat için ACDOCA (`AWTYP='RMRP'`, `AWREF`=BELNR, `AWORG`=GJAHR) elle karşılaştırılabilir.
 - **Fatura tutarı (kontrol kodu PB):** `EKBE-WRBTR` belge para biriminden `TKA01-WAERS`'a `currency_conversion` ile çevrilir (`FaturaTutarKontrolKoduPB`). TRY alanı (`FaturaTutarTRY`) korunur; ikisi de aggregate view'da hesaplanır.
 - **Para birimi:** `EKKO-WAERS`; SAT tutarı `EBAN-RLWRT`, para birimi `EBAN-WAERS`.
