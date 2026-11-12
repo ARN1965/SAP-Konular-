@@ -29,3 +29,7 @@ Aktivasyon sırası: KOKRS → TUTAR → OZET → RAPOR → ALV. `SAS_CDS_ALV.ab
 - **Performans:** EKBE toplamları ve TRY dönüşümü ayrı aggregate view'da (`ZI_SAS_EKBE_OZET`) kalem bazında önceden hesaplanır; ana view'de 5 join vardır (KOKRS eşlemesi anahtar erişimlidir). Rapora SAS no/tarih filtresi verin.
 - **Seçim ekranı (ALV):** SAS no, SAS yaratma tarihi ve çoklu üretim yeri (`SO_WERKS` → `EKPO-WERKS`, `ZC_SAS_RAPOR.Uretimyeri`).
 - Yetki kontrolü yok (`#NOT_REQUIRED`); kod bir sistemde derlenmedi.
+
+## Test ön yüzü ve hayali veri
+- `SAS_CDS_TEST_ON_YUZ.html`: sunucusuz, tarayıcıda açılan SAP ALV benzeri ön yüz (F8 çalıştır, F3 geri, F12 iptal; SAS no/tarih/çoklu üretim yeri seçimi, sıralama, filtre, toplam, alt toplam, CSV).
+- `SAS_CDS_TEST_VERI.csv`: 150 satırlık hayali veri (`;` ayraçlı, ZC_SAS_RAPOR kolonlarıyla aynı); aynı veri HTML'e gömülüdür. Kur olmayan satırlarda TRY/USD tutarı boştur.
