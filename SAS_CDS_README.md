@@ -18,7 +18,6 @@ Aktivasyon sırası: TUTAR → OZET → RAPOR. View adları (ZI_/ZC_) dosya adla
 - **SAT onay tarihi:** `PurchaseRequisitionReleaseDate` (EBAN-FRGDT); yoksa gün farkı NULL.
 - **SAS yaratma tarihi:** `I_PurchaseOrderAPI01.CreationDate` (EKKO-AEDAT). **Gün farkı** = SAS yaratma − SAT onay.
 - **SAT bağlantısı:** SAS kalemindeki `PurchaseRequisition/Item` (SAT'sız SAS de listelenir).
-- **SAT tutarı:** `RequestedQuantity × PurchaseRequisitionPrice / PurchasingPriceUnit` hesaplanır.
 - **Mal girişi:** PO geçmişinde `PurchasingHistoryDocumentType='E'` varsa `X`. **Fatura girişi:** tip `'Q'` varsa `X`; alacak (`DebitCreditCode='H'`) negatif.
 - **Fatura tutarı:** `InvoiceAmountInFrgnCurrency` (belge para birimi); TRY için kur tipi `M`, kur tarihi `PostingDate`, kur yoksa NULL.
 - **Kontrol kodu:** Belirsiz; `ConsumptionTaxCtrlCode` (EKPO-STEUC) varsayıldı, `ZC_SAS_RAPOR`'da değiştirilebilir.
