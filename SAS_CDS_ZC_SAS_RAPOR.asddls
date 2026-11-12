@@ -9,6 +9,7 @@ define view entity ZC_SAS_RAPOR
                          and eban.bnfpo = ekpo.bnfpo
     left outer join ZI_SAS_EKBE_OZET as ozet on  ozet.ebeln = ekpo.ebeln
                                               and ozet.ebelp = ekpo.ebelp
+    left outer join ZI_SAS_KOKRS as ko on ko.Bukrs = ekpo.bukrs
     left outer join makt on  makt.matnr = ekpo.matnr
                          and makt.spras = $session.system_language
 {
@@ -55,8 +56,12 @@ define view entity ZC_SAS_RAPOR
       ozet.fatura_tutar_try       as FaturaTutarTRY,
       cast( 'TRY' as abap.cuky )  as FaturaParaBirimiTRY,
 
-      // Kontrol kodu (varsayım: EKPO-STEUC)
-      ekpo.steuc                  as KontrolKodu,
+      @Semantics.amount.currencyCode: 'KontrolKoduParaBirimi'
+      ozet.fatura_tutar_kokrs     as FaturaTutarKontrolKoduPB,
+
+      // Kontrol kodu = Controlling Area (KOKRS), para birimi TKA01-WAERS
+      ko.Kokrs                    as KontrolKodu,
+      ko.KokrsWaers               as KontrolKoduParaBirimi,
 
       ekpo.loekz                  as SilmeGostergesi,
       ekpo.elikz                  as TeslimTamamlandi

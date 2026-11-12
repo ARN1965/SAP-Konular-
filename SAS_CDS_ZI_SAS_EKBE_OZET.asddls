@@ -18,10 +18,15 @@ define view entity ZI_SAS_EKBE_OZET
       @Semantics.amount.currencyCode: 'try_pb'
       sum( case bewtp when 'Q' then tutar_try else cast( 0 as abap.curr(13,2) ) end ) as fatura_tutar_try,
 
-      try_pb
+      @Semantics.amount.currencyCode: 'kokrs_pb'
+      sum( case bewtp when 'Q' then tutar_kokrs else cast( 0 as abap.curr(13,2) ) end ) as fatura_tutar_kokrs,
+
+      try_pb,
+      kokrs_pb
 }
 group by
   ebeln,
   ebelp,
   waers,
-  try_pb
+  try_pb,
+  kokrs_pb
