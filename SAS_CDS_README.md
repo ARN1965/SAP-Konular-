@@ -33,3 +33,10 @@ Aktivasyon sırası: KOKRS → TUTAR → OZET → RAPOR → ALV. `SAS_CDS_ALV.ab
 ## Test ön yüzü ve hayali veri
 - `SAS_CDS_TEST_ON_YUZ.html`: sunucusuz, tarayıcıda açılan SAP ALV benzeri ön yüz (F8 çalıştır, F3 geri, F12 iptal; SAS no/tarih/çoklu üretim yeri seçimi, sıralama, filtre, toplam, alt toplam, CSV).
 - `SAS_CDS_TEST_VERI.csv`: 150 satırlık hayali veri (`;` ayraçlı, ZC_SAS_RAPOR kolonlarıyla aynı); aynı veri HTML'e gömülüdür. Kur olmayan satırlarda TRY/USD tutarı boştur.
+
+## Yeni tarih alanları
+- `SatYaratmaTarihi` = `EBAN-ERDAT` (SAT kaydının yaratıldığı tarih; `BADAT` talep tarihi olduğundan kullanılmadı). `SatYaratmaOnayGunFarki` = `EBAN-FRGDT` − `EBAN-ERDAT`.
+- `GunFarki` yeniden adlandırıldı: `SatOnaySasYaratmaGunFarki` (SAT onay → SAS yaratma).
+- `SasOnayTarihi` = `EKKO-FRGDT`; onay stratejisi yoksa/onaylanmadıysa boştur. `SasYaratmaOnayGunFarki` = `EKKO-FRGDT` − `EKKO-AEDAT`.
+- Boş/`00000000` tarihler NULL sayılır; farklar `dats_days_between` ile hesaplanır, negatif fark olduğu gibi gösterilir.
+- Test verisi/ön yüz yeni kolonlarla güncellendi (bazı SAT ve SAS'lar onaysız).

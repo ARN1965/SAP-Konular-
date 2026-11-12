@@ -40,11 +40,20 @@ define view entity ZC_SAS_RAPOR
       ekpo.netwr                  as SasTutar,
 
       // Tarihler
+      eban.erdat                  as SatYaratmaTarihi,
       eban.frgdt                  as SatOnayTarihi,
+      case when eban.erdat is null or eban.erdat = '00000000'
+             or eban.frgdt is null or eban.frgdt = '00000000'
+           then cast( null as abap.int4 )
+           else dats_days_between( eban.erdat, eban.frgdt ) end as SatYaratmaOnayGunFarki,
       ekko.aedat                  as SasYaratmaTarihi,
       case when eban.frgdt is null or eban.frgdt = '00000000'
            then cast( null as abap.int4 )
-           else dats_days_between( eban.frgdt, ekko.aedat ) end as GunFarki,
+           else dats_days_between( eban.frgdt, ekko.aedat ) end as SatOnaySasYaratmaGunFarki,
+      ekko.frgdt                  as SasOnayTarihi,
+      case when ekko.frgdt is null or ekko.frgdt = '00000000'
+           then cast( null as abap.int4 )
+           else dats_days_between( ekko.aedat, ekko.frgdt ) end as SasYaratmaOnayGunFarki,
 
       // Göstergeler
       case when ozet.mal_girisi_net > 0 then 'X' else '' end as MalGirisiYapildi,
