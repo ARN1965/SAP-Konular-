@@ -3,64 +3,61 @@
 @EndUserText.label: 'SAT - SAS raporu (açık ve kapalı)'
 @Metadata.ignorePropagatedAnnotations: true
 define view entity ZC_SAS_RAPOR
-  as select from I_PurchaseOrderItemAPI01 as poi
-    inner join      I_PurchaseOrderAPI01 as po  on po.PurchaseOrder = poi.PurchaseOrder
-    left outer join I_PurchaseRequisitionItemAPI01 as pri
-                                                on  pri.PurchaseRequisition     = poi.PurchaseRequisition
-                                                and pri.PurchaseRequisitionItem = poi.PurchaseRequisitionItem
-    left outer join ZI_SAS_EKBE_OZET as ozet    on  ozet.SasNo    = poi.PurchaseOrder
-                                                and ozet.SasKalem = poi.PurchaseOrderItem
-    left outer join I_ProductDescription as pd  on  pd.Product  = poi.Material
-                                                and pd.Language = $session.system_language
+  as select from ekpo
+    inner join      ekko on ekko.ebeln = ekpo.ebeln
+    left outer join eban on  eban.banfn = ekpo.banfn
+                         and eban.bnfpo = ekpo.bnfpo
+    left outer join ZI_SAS_EKBE_OZET as ozet on  ozet.ebeln = ekpo.ebeln
+                                              and ozet.ebelp = ekpo.ebelp
+    left outer join makt on  makt.matnr = ekpo.matnr
+                         and makt.spras = $session.system_language
 {
-  key poi.PurchaseOrder                 as SasNo,
-  key poi.PurchaseOrderItem             as SasKalem,
+  key ekpo.ebeln                  as SasNo,
+  key ekpo.ebelp                  as SasKalem,
 
-      poi.PurchaseRequisition           as SatNo,
-      poi.PurchaseRequisitionItem       as SatKalem,
-      poi.Material                      as Malzeme,
-      // Tanım yoksa kalem kısa metni kullanılır
-      coalesce( pd.ProductDescription, poi.PurchaseOrderItemText ) as MalzemeTanimi,
+      ekpo.banfn                  as SatNo,
+      ekpo.bnfpo                  as SatKalem,
+      ekpo.matnr                  as Malzeme,
+      // Tanım yoksa EKPO-TXZ01 kullanılır
+      coalesce( makt.maktx, ekpo.txz01 ) as MalzemeTanimi,
 
-      // SAT miktarı ve tutarı (tutar = miktar x fiyat / fiyat birimi)
-      pri.BaseUnit                      as SatBirim,
+      // SAT miktarı ve tutarı
+      eban.meins                  as SatBirim,
       @Semantics.quantity.unitOfMeasure: 'SatBirim'
-      pri.RequestedQuantity             as SatMiktar,
-      pri.PurReqnItemCurrency           as SatParaBirimi,
-      // Fiyat birimi (PRICE UNIT) 1 kabul edilir; basit çarpım
+      eban.menge                  as SatMiktar,
+      eban.waers                  as SatParaBirimi,
       @Semantics.amount.currencyCode: 'SatParaBirimi'
-      cast( pri.RequestedQuantity * pri.PurchaseRequisitionPrice as abap.curr(15,2) ) as SatTutar,
+      eban.rlwrt                  as SatTutar,
 
       // SAS miktarı ve tutarı
-      poi.PurchaseOrderQuantityUnit     as SasBirim,
+      ekpo.meins                  as SasBirim,
       @Semantics.quantity.unitOfMeasure: 'SasBirim'
-      poi.OrderQuantity                 as SasMiktar,
-      poi.DocumentCurrency              as ParaBirimi,
+      ekpo.menge                  as SasMiktar,
+      ekko.waers                  as ParaBirimi,
       @Semantics.amount.currencyCode: 'ParaBirimi'
-      poi.NetAmount                     as SasTutar,
+      ekpo.netwr                  as SasTutar,
 
       // Tarihler
-      pri.PurchaseRequisitionReleaseDate as SatOnayTarihi,
-      po.CreationDate                   as SasYaratmaTarihi,
-      case when pri.PurchaseRequisitionReleaseDate is null
-             or pri.PurchaseRequisitionReleaseDate = '00000000'
+      eban.frgdt                  as SatOnayTarihi,
+      ekko.aedat                  as SasYaratmaTarihi,
+      case when eban.frgdt is null or eban.frgdt = '00000000'
            then cast( null as abap.int4 )
-           else dats_days_between( pri.PurchaseRequisitionReleaseDate, po.CreationDate ) end as GunFarki,
+           else dats_days_between( eban.frgdt, ekko.aedat ) end as GunFarki,
 
       // Göstergeler
-      case when ozet.MalGirisiAdet > 0 then 'X' else '' end as MalGirisiYapildi,
-      case when ozet.FaturaAdet > 0    then 'X' else '' end as FaturaGirisiYapildi,
+      case when ozet.mal_girisi_adet > 0 then 'X' else '' end as MalGirisiYapildi,
+      case when ozet.fatura_adet > 0     then 'X' else '' end as FaturaGirisiYapildi,
 
       // Fatura tutarı: belge para birimi ve TRY
       @Semantics.amount.currencyCode: 'ParaBirimi'
-      ozet.FaturaTutarBelgePB           as FaturaTutarBelgePB,
+      ozet.fatura_tutar_belge_pb  as FaturaTutarBelgePB,
       @Semantics.amount.currencyCode: 'FaturaParaBirimiTRY'
-      ozet.FaturaTutarTRY               as FaturaTutarTRY,
-      cast( 'TRY' as abap.cuky )        as FaturaParaBirimiTRY,
+      ozet.fatura_tutar_try       as FaturaTutarTRY,
+      cast( 'TRY' as abap.cuky )  as FaturaParaBirimiTRY,
 
-      // Kontrol kodu (varsayım: EKPO-STEUC = ConsumptionTaxCtrlCode)
-      poi.ConsumptionTaxCtrlCode        as KontrolKodu,
+      // Kontrol kodu (varsayım: EKPO-STEUC)
+      ekpo.steuc                  as KontrolKodu,
 
-      poi.PurchasingDocumentDeletionCode as SilmeGostergesi,
-      poi.IsCompletelyDelivered         as TeslimTamamlandi
+      ekpo.loekz                  as SilmeGostergesi,
+      ekpo.elikz                  as TeslimTamamlandi
 }

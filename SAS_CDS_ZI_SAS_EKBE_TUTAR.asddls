@@ -3,42 +3,35 @@
 @EndUserText.label: 'SAS geçmişi - satır bazında TRY dönüşümü'
 @Metadata.ignorePropagatedAnnotations: true
 define view entity ZI_SAS_EKBE_TUTAR
-  as select from I_PurchaseOrderHistoryAPI01 as hist
+  as select from ekbe
 {
-  key hist.PurchasingHistoryDocumentType     as HistTipi,   // BEWTP: E mal girişi, Q fatura
-  key hist.PurchasingHistoryDocumentYear     as HistYil,
-  key hist.PurchasingHistoryDocument         as HistBelge,
-  key hist.PurchasingHistoryDocumentItem     as HistKalem,
-  key hist.PurchasingHistoryCategory         as HistKategori,
-  key hist.AccountAssignmentNumber           as HistHesapAtama,
-  key hist.PurchaseOrder                     as SasNo,
-  key hist.PurchaseOrderItem                 as SasKalem,
-
-      hist.DocumentCurrency                  as BelgePB,
+  key ebeln,
+  key ebelp,
+  key zekkn,
+  key vgabe,
+  key gjahr,
+  key belnr,
+  key buzei,
+      bewtp,
+      waers,
 
       // Borç (S) pozitif, alacak (H) negatif işaretlenir
-      @Semantics.amount.currencyCode: 'BelgePB'
-      case hist.DebitCreditCode
-        when 'H' then cast( 0 as abap.curr(13,2) ) - hist.InvoiceAmountInFrgnCurrency
-        else hist.InvoiceAmountInFrgnCurrency
-      end                                    as TutarBelgePB,
+      @Semantics.amount.currencyCode: 'waers'
+      case shkzg when 'H' then cast( 0 as abap.curr(13,2) ) - wrbtr else wrbtr end as tutar_belge_pb,
 
-      // Belge para birimi -> TRY, kur tarihi: kayıt tarihi
-      @Semantics.amount.currencyCode: 'TryPB'
+      // Belge para birimi -> TRY, kur tarihi: kayıt tarihi (BUDAT)
+      @Semantics.amount.currencyCode: 'try_pb'
       currency_conversion(
-        amount             => case hist.DebitCreditCode
-                                when 'H' then cast( 0 as abap.curr(13,2) ) - hist.InvoiceAmountInFrgnCurrency
-                                else hist.InvoiceAmountInFrgnCurrency
-                              end,
-        source_currency    => hist.DocumentCurrency,
+        amount             => case shkzg when 'H' then cast( 0 as abap.curr(13,2) ) - wrbtr else wrbtr end,
+        source_currency    => waers,
         target_currency    => cast( 'TRY' as abap.cuky ),
-        exchange_rate_date => hist.PostingDate,
+        exchange_rate_date => budat,
         exchange_rate_type => 'M',
         error_handling     => 'SET_TO_NULL'
-      )                                      as TutarTRY,
+      ) as tutar_try,
 
-      cast( 'TRY' as abap.cuky )             as TryPB
+      cast( 'TRY' as abap.cuky ) as try_pb
 }
 where
-     hist.PurchasingHistoryDocumentType = 'E'   // mal girişi
-  or hist.PurchasingHistoryDocumentType = 'Q'   // fatura girişi
+     bewtp = 'E'   // mal girişi
+  or bewtp = 'Q'   // fatura girişi
